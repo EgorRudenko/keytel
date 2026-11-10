@@ -47,17 +47,30 @@
     )
   )
 
+(defun line-length(line)
+  (let ((out nil))
+    (save-excursion
+      (goto-line line)
+      (beginning-of-line-or-indentation)
+      (setq out (length
+		 (thing-at-point 'line t)
+		 ))
+      )
+    out
+    )
+  )
+
 (defun process()
   (interactive)
   (self-insert-command 1)
-  (let ((key (this-command-keys))
+  (let ((key (this-command-keys ))
 	)
     (if (equal key (kbd "<backspace>"))
 	(delete-backward-char 1)
       )
     (if (and
-	 (> (current-column) (length text))
-	 (equal last-mistake nil)
+	 (>= (current-column) (length text))
+	 (not last-mistake)
 	 )
 	(progn
 	  (erase-buffer)
@@ -66,13 +79,19 @@
       )
     (if (not (equal (char-at-pos (line-number-at-pos) (- (current-column) 1))
 		    (char-at-pos (+ (line-number-at-pos) dist) (- (current-column) 1))))
-	(setq last-mistake (- (current-column) 1))
-      (if (or (not last-mistake) (<= (- (current-column) 1) last-mistake))
+	(setq last-mistake (if last-mistake
+			       (min (- (current-column) 1) last-mistake)
+			     (- (current-column) 1)
+			     )
+	      )
+      (if (or (not last-mistake) (<= (current-column) last-mistake))
 	  (setq last-mistake nil)
 	)
       )
-    ;;(add-text-properties (beginning-of-line) (length text) '(face font-lock-default-face))
-    ;;(add-text-properties (last-mistake) (length text) '(face font-lock-warning-face))
+    (add-text-properties 1 (line-length 1) '(face default))
+    (if last-mistake
+	(add-text-properties (+ 1 last-mistake) (line-length 1) '(face font-lock-warning-face))
+      )
     )
   )
 

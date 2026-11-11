@@ -21,6 +21,7 @@
 (setq dist 2)
 
 (defun gen-text()
+  (erase-buffer)
   (save-excursion
     (setq text "")
     (let ((line (line-number-at-pos))
@@ -30,13 +31,29 @@
 	  (insert (make-string gap ?\n))
 	)
       (cl-loop for i from 0 to 10 do
-	       (setq text (concat text (nth (random (length word-list)) word-list)))
-	       (setq text (concat text " "))
+	       (let ((r (random 100) ))
+		 (cond
+		  ((> r 50) (setq text (concat text (if
+							(equal (random 2) 1)
+							(capitalize (nth (random (length word-list)) word-list))
+						      (nth (random (length word-list)) word-list)))))
+		  ((< r 90) (cl-loop for i from 0 to (random 5)  do
+				     (setq text (concat text
+							(nth (random (length digit-list)) digit-list)))))
+		  ((>= r 90) (cl-loop for i from 0 to (random 5)  do
+					(setq text (concat text
+							   (nth (random (length symbol-list)) symbol-list)))))
+		  
+		  )
+		 (setq text (concat text " "))
+		 )
 	       )
       (insert text)
       )
     )
   )
+
+
 
 (defun char-at-pos(l c)
   (save-excursion
@@ -75,6 +92,7 @@
 	(progn
 	  (erase-buffer)
 	  (gen-text)
+	  (setq last-mistake nil)
 	  )
       )
     (if (not (equal (char-at-pos (line-number-at-pos) (- (current-column) 1))
@@ -106,6 +124,11 @@
   (define-key keytel-mode-map [t] 'process)
   )
 
+
+(setq symbol-list (list
+		    "~" "`" "!" "@" "#" "$" "%" "^" "&" "*" "(" ")" "_" "+" "-" "=" "\"" "'" ";" ":" "\\" "|" "," "." "<" ">" "/" "?"
+		    ))
+(setq digit-list (list "1" "2" "3" "4" "5" "6" "7" "8" "9" "0"))
 
 (defun keytel ()
   (interactive)
